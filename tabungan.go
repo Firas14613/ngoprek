@@ -43,14 +43,32 @@ func buatTabunganBaru(daftar []tabungan, namaTabungan string, targetTabungan flo
 }
 
 func perbaruiStatus(t *tabungan) {
-    if t.terkumpul >= t.target {
-        t.status = "terpenuhi"
-    } else {
-        t.status = "proses"
-    }
+	if t.terkumpul >= t.target {
+		t.status = "terpenuhi"
+	} else {
+		t.status = "proses"
+	}
 }
 
-func tampilkanTabungan (daftar []tabungan) {
+func formatRupiah(nominal float64) string {
+	angka := strconv.FormatFloat(nominal, 'f', 0, 64)
+	awal := len(angka) % 3
+	if awal == 0 {
+		awal = 3
+	}
+
+	var hasil strings.Builder
+	hasil.WriteString(angka[:awal])
+
+	for i := awal; i < len(angka); i += 3 {
+		hasil.WriteByte('.')
+		hasil.WriteString(angka[i : i+3])
+	}
+
+	return "Rp. " + hasil.String()
+}
+
+func tampilkanTabungan(daftar []tabungan) {
 	if len(daftar) == 0 {
 		fmt.Printf("Tidak ada tabungan\n\n")
 	} else {
@@ -60,7 +78,7 @@ func tampilkanTabungan (daftar []tabungan) {
 
 		fmt.Println(strings.Repeat("-", 100))
 		for i, v := range daftar {
-			fmt.Printf("%-4d %-25sRp. %-18.0fRp. %-18.0fRp. %-18.0f %-10s\n", i+1, v.nama, v.target, v.terkumpul, (v.target - v.terkumpul), v.status)
+			fmt.Printf("%-4d %-25s %-18s %-18s %-18s %-10s\n", i+1, v.nama, formatRupiah(v.target), formatRupiah(v.terkumpul), formatRupiah(v.target-v.terkumpul), v.status)
 		}
 		fmt.Println(strings.Repeat("=", 100))
 		fmt.Println()
@@ -69,7 +87,7 @@ func tampilkanTabungan (daftar []tabungan) {
 
 func isiTabungan(daftar []tabungan, namaTabungan string) {
 	for i, v := range daftar {
-		if (strings.EqualFold(v.nama, namaTabungan)){
+		if strings.EqualFold(v.nama, namaTabungan) {
 			nominal, err := strconv.ParseFloat(input("Masukan nominal: Rp "), 64)
 			if err != nil {
 				fmt.Println("Nominal harus berupa angka!")
@@ -84,9 +102,9 @@ func isiTabungan(daftar []tabungan, namaTabungan string) {
 	fmt.Printf("\nNama tabungan tidak ditemukan\n\n")
 }
 
-func ambilIsiTabungan (daftar []tabungan, namaTabungan string) {
+func ambilIsiTabungan(daftar []tabungan, namaTabungan string) {
 	for i, v := range daftar {
-		if (strings.EqualFold(v.nama, namaTabungan)){
+		if strings.EqualFold(v.nama, namaTabungan) {
 			nominal, err := strconv.ParseFloat(input("Nomimal Pengambilan : Rp "), 64)
 			if err != nil {
 				fmt.Println("Nominal harus berupa angka!")
@@ -105,9 +123,9 @@ func ambilIsiTabungan (daftar []tabungan, namaTabungan string) {
 	fmt.Printf("\nNama tabungan tidak ditemukan!\n\n")
 }
 
-func editTabungan (daftar []tabungan, namaTabungan string) {
+func editTabungan(daftar []tabungan, namaTabungan string) {
 	for i, v := range daftar {
-		if (strings.EqualFold(v.nama, namaTabungan)){
+		if strings.EqualFold(v.nama, namaTabungan) {
 			namaBaru := input("Masukan nama baru: ")
 			targetBaru, err := strconv.ParseFloat(input("Masukan target baru: Rp "), 64)
 			if err != nil {
@@ -116,6 +134,7 @@ func editTabungan (daftar []tabungan, namaTabungan string) {
 			}
 			daftar[i].nama = namaBaru
 			daftar[i].target = targetBaru
+			perbaruiStatus(&daftar[i])
 			fmt.Printf("\nTabungan Berhasil diedit\n\n")
 			return
 		}
@@ -123,9 +142,9 @@ func editTabungan (daftar []tabungan, namaTabungan string) {
 	fmt.Printf("\nNama tabungan tidak ditemukan!\n\n")
 }
 
-func hapusTabungan (daftar []tabungan, namaTabungan string) []tabungan {
+func hapusTabungan(daftar []tabungan, namaTabungan string) []tabungan {
 	for i, v := range daftar {
-		if (strings.EqualFold(v.nama, namaTabungan)){
+		if strings.EqualFold(v.nama, namaTabungan) {
 			fmt.Printf("\nTabungan %q berhasil dihapus\n\n", v.nama)
 			return append(daftar[:i], daftar[i+1:]...)
 		}
@@ -139,10 +158,12 @@ func main() {
 
 	for {
 		daftarMenu()
-		
+
 		fmt.Println()
 		fmt.Println(strings.Repeat("-", 50))
 		pilihan, _ := strconv.Atoi(input("Masukan pilihan: "))
+		fmt.Println(strings.Repeat("=", 50))
+		fmt.Println()
 
 		if pilihan == 0 {
 			break
